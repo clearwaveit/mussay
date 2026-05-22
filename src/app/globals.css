@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* ─── Design tokens (exact match from original) ─── */
+@theme {
+  --color-navy:      #1a1a1a;
+  --color-gold:      #cc9a52;
+  --color-gold-dark: #b08035;
+  --color-cream:     #ffffff;
+  --color-moussy-bg: #e21f26;
+}
+
+/* ─── Base ─── */
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100dvh;
+    background-color: #b31219;
+  }
+
+  /* ── Initial SSR: set on <html> by root layout ── */
+  [lang="ar"] { font-family: var(--font-cairo), "Cairo", sans-serif; direction: rtl; }
+  [lang="en"] { font-family: var(--font-poppins), "Poppins", sans-serif; direction: ltr; }
+
+  /* ── Client-side navigation fix ──
+     direction: rtl/ltr on inner [dir] elements (e.g. phone input container).
+     Font is handled by the locale layout wrapper, not here — so Cairo/Poppins
+     correctly cascade from the parent without being clobbered on inner elements. ── */
+  [dir="rtl"] { direction: rtl; }
+  [dir="ltr"] { direction: ltr; }
+}
+
+/* ─── Custom utilities (exact from source CSS) ─── */
+
+/* Full-page red gradient background — used on loading screen */
+.moussy-bg-gradient {
+  background:
+    radial-gradient(at 50% -10%, #cc9a5280, transparent 55%),
+    radial-gradient(at 50% 100%, rgba(0,0,0,.2), transparent 50%),
+    linear-gradient(175deg, #e21f26, #d41620, #b31219 60%, #8c0b12) !important;
+}
+
+/* Same gradient + repeating dot/circle SVG pattern — used on all pages */
+.bg-pattern {
+  background-color: transparent;
+  background-image:
+    radial-gradient(at 50% 0,    #cc9a5266, transparent 65%),
+    radial-gradient(at 100% 100%,#ffffff1a, transparent 60%),
+    radial-gradient(at 0   100%, #00000026, transparent 55%),
+    linear-gradient(160deg, #e21f26, #d41620 35%, #b31219 65%, #8c0b12);
+  background-attachment: fixed;
+}
+
+/* SVG dot/circle pattern overlay (fixed, full-viewport) */
+.bg-pattern::before {
+  content: "";
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFFFFF' fill-opacity='0.05'%3E%3Ccircle cx='40' cy='40' r='6'/%3E%3Ccircle cx='40' cy='40' r='14' stroke='%23FFFFFF' stroke-opacity='0.05' stroke-width='1' fill='none'/%3E%3Cpath d='M20 40h4M56 40h4M40 20v4M40 56v4' stroke='%23FFFFFF' stroke-opacity='0.05' stroke-width='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+}
+
+/* Gold gradient text */
+.text-gold-gradient {
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(135deg, #cc9a52, #b08035);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Gold gradient background (buttons) */
+.bg-gold-gradient {
+  background: linear-gradient(135deg, #e2b779, #cc9a52);
+}
+
+/* Premium red-glow shadow */
+.shadow-premium {
+  box-shadow: 0 10px 30px -10px #e3183733;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%) skewX(-20deg); }
+  100% { transform: translateX(300%)  skewX(-20deg); }
+}
+
+/* Scrollbar hide */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Custom scrollbar (gold) */
+.scrollbar::-webkit-scrollbar       { width: 6px; }
+.scrollbar::-webkit-scrollbar-track { background: #e21f261a; border-radius: 4px; }
+.scrollbar::-webkit-scrollbar-thumb { background: var(--color-gold); border-radius: 4px; }

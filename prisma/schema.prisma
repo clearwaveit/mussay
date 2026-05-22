@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Participant {
+  id           String        @id @default(cuid())
+  ticketNumber Int           @default(autoincrement()) @unique
+  phone        String        @unique
+  name         String
+  email        String
+  createdAt    DateTime      @default(now())
+  entries      Entry[]
+  codes        Code[]
+  abuse        AbuseRecord?
+
+  @@index([phone])
+}
+
+model Code {
+  id            String      @id @default(cuid())
+  code          String      @unique
+  isUsed        Boolean     @default(false)
+  status        CodeStatus  @default(PENDING)
+  participant   Participant? @relation(fields: [participantId], references: [id])
+  participantId String?
+  usedAt        DateTime?
+
+  @@index([code])
+  @@index([participantId])
+}
+
+enum CodeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Entry {
+  id            String      @id @default(cuid())
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  type          EntryType
+  createdAt     DateTime    @default(now())
+
+  @@index([participantId])
+}
+
+enum EntryType {
+  QR
+  CODE
+}
+
+model Campaign {
+  id         Int     @id @default(1)
+  isActive   Boolean @default(true)
+}
+
+model BuyClickAnalytic {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}
+
+model AbuseRecord {
+  id             String      @id @default(cuid())
+  participantId  String      @unique
+  participant    Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  failedAttempts Int         @default(0)
+  blockedUntil   DateTime?
+  blockLevel     Int         @default(0)
+  updatedAt      DateTime    @updatedAt
+}
