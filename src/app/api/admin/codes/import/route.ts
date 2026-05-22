@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(codes) || codes.length === 0)
     return NextResponse.json({ error: 'No codes provided' }, { status: 400 })
 
-  const cleaned = [...new Set(codes.map(c => c.trim().toUpperCase()).filter(c => c.length > 0))]
+  const cleaned = [...new Set(codes.map(c => c.trim().toUpperCase()).filter(c => c.length >= 5 && c.length <= 20 && /^[A-Z0-9]+$/.test(c)))]
 
   const result = await prisma.code.createMany({
     data: cleaned.map(code => ({ code })),
