@@ -1,5 +1,5 @@
 #!/bin/sh
 echo "Running database migrations..."
-npx prisma db push --schema ./prisma/schema.prisma
+./node_modules/.bin/prisma db push --schema ./prisma/schema.prisma
 echo "Starting application..."
 node server.js
