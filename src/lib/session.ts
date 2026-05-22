@@ -35,5 +35,7 @@ export async function verifyAdminSession(req: Request): Promise<boolean> {
   const cookieHeader = req.headers.get('cookie') ?? ''
   const match = cookieHeader.match(/admin_session=([^;]+)/)
   if (!match) return false
-  return match[1] === process.env.ADMIN_PASSWORD
+  const cookieValue = decodeURIComponent(match[1]).trim()
+  const adminPassword = (process.env.ADMIN_PASSWORD ?? '').trim()
+  return cookieValue === adminPassword
 }
