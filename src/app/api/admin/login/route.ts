@@ -12,10 +12,9 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.json({ ok: true })
-  const isProduction = process.env.NODE_ENV === 'production'
   res.cookies.set('admin_session', password, {
-    httpOnly: false, // needs to be readable by client for cookie check
-    secure: isProduction,
+    httpOnly: false,
+    secure: false,
     sameSite: 'lax',
     maxAge: 60 * 60 * 8, // 8 hours
     path: '/',
