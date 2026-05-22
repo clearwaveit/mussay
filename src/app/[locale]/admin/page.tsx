@@ -297,7 +297,7 @@ export default function AdminPage() {
       const lines = text.split('\n')
       let inserted = 0, skipped = 0
       const validLines = lines.map(l => l.trim().toUpperCase()).filter(l => l.length > 0)
-      const invalid = lines.length - validLines.length
+      let invalid = lines.length - validLines.length
 
       for (let i = 0; i < validLines.length; i += BATCH_SIZE) {
         const batch = validLines.slice(i, i + BATCH_SIZE)
@@ -309,7 +309,9 @@ export default function AdminPage() {
             body: JSON.stringify({ codes: batch }),
           })
           const data = await res.json()
-          inserted += data.inserted ?? 0; skipped += data.skipped ?? 0
+          inserted += data.inserted ?? 0
+          skipped += data.skipped ?? 0
+          invalid += data.invalid ?? 0
         } catch { skipped += batch.length }
       }
       results.push({ file: file.name, totalLines: lines.length, inserted, skipped, invalid })
