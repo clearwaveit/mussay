@@ -124,7 +124,7 @@ function HeroContent() {
       {/* Main banner image — fills available space */}
       <div className="relative flex-1 overflow-hidden">
         <Image
-          src="/main-banner.png"
+          src={locale === 'ar' ? '/main-banner-ar.jpg' : '/main-banner-en.jpg'}
           alt="Moussy Campaign"
           fill
           className="object-cover object-top"

@@ -69,7 +69,7 @@ export default function TicketPage() {
   const Banner = () => (
     <div className="shrink-0 mx-4 mt-2 mb-1 h-[220px]">
       <div className="w-full h-full rounded-2xl overflow-hidden relative shadow-lg">
-        <Image src="/top_banner.png" alt="Moussy Campaign" fill className="object-cover object-top" />
+        <Image src="/top_banner.jpg" alt="Moussy Campaign" fill className="object-cover object-top" />
       </div>
     </div>
   )
