@@ -17,9 +17,11 @@ interface HeaderProps {
   toggleLocalePath: string
   /** When provided, shows a logout button next to the language switcher */
   onLogout?: () => void
+  /** Smaller logo + shorter header for the landing page */
+  compact?: boolean
 }
 
-export default function Header({ onBack, toggleLocalePath, onLogout }: HeaderProps) {
+export default function Header({ onBack, toggleLocalePath, onLogout, compact }: HeaderProps) {
   const t = useTranslations('common')
   const locale = useLocale()
   const router = useRouter()
@@ -73,7 +75,7 @@ export default function Header({ onBack, toggleLocalePath, onLogout }: HeaderPro
   const Right = isAr ? BackBtn   : LangGroup
 
   return (
-    <div className="relative z-50 shrink-0 flex items-center justify-between px-4" style={{ minHeight: '110px' }} dir="ltr">
+    <div className="relative z-50 shrink-0 flex items-center justify-between px-4" style={{ minHeight: compact ? '80px' : '110px' }} dir="ltr">
       <div className="w-auto flex items-center">{Left}</div>
       {/* Logo absolutely centered — top padding pushes it down from the status bar */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingTop: '14px' }}>
@@ -82,7 +84,7 @@ export default function Header({ onBack, toggleLocalePath, onLogout }: HeaderPro
           alt="Moussy"
           width={192}
           height={96}
-          className="h-32 w-auto object-contain brightness-200"
+          className={`${compact ? 'h-20' : 'h-32'} w-auto object-contain brightness-200`}
         />
       </div>
       <div className="w-auto flex items-center justify-end">{Right}</div>

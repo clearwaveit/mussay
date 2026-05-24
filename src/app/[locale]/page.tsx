@@ -118,22 +118,22 @@ function HeroContent() {
   }, [locale, router])
 
   return (
-    <div className="bg-pattern min-h-dvh flex flex-col relative overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-      <Header onBack={null} toggleLocalePath={locale === 'ar' ? '/en' : '/ar'} />
+    <div className="bg-pattern h-dvh flex flex-col relative overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+      <Header onBack={null} toggleLocalePath={locale === 'ar' ? '/en' : '/ar'} compact />
 
-      {/* Main banner image — contains full image in available space */}
-      <div className="relative flex-1">
-        <Image
+      {/* Main banner image — always fully visible, height fills, width letterboxes */}
+      <div className="flex-1 min-h-0 relative">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={locale === 'ar' ? '/main-banner-ar.jpg' : '/main-banner-en.jpg'}
           alt="Moussy Campaign"
-          fill
-          className="object-cover object-center"
-          priority
+          className="absolute inset-0 w-full h-full object-contain"
+          fetchPriority="high"
         />
       </div>
 
       {/* Bottom section: button + powered-by */}
-      <div className="relative z-10 shrink-0 px-6 pb-8 pt-4 flex flex-col gap-3">
+      <div className="relative z-10 shrink-0 px-6 py-5 flex flex-col gap-3">
         <Link href={`/${locale}/buy`}>
           <span className="w-full bg-gold-gradient text-[#1a1a1a] font-black text-xl py-4 rounded-2xl flex items-center justify-center shadow-premium active:scale-[0.98] transition-all">
             {t('common.startNow')}
