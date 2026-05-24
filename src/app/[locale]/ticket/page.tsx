@@ -218,19 +218,18 @@ export default function TicketPage() {
             <span className="text-white font-bold text-xl">{t('ticket.enterCode')}</span>
           </button>
 
-          {/* My Entries */}
+          {/* My Codes History button */}
           {participant.codes.length > 0 && (
-            <div className="space-y-2 mt-2">
-              <h3 className="text-gold font-bold text-sm px-1">{t('ticket.myEntries')}</h3>
-              {participant.codes.map(entry => (
-                <div key={entry.id} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-black tracking-widest text-sm font-mono" dir="ltr">{entry.code}</p>
-                  </div>
-                  <span className={`text-xs font-bold shrink-0 ${statusColor(entry.status)}`}>{statusLabel(entry.status)}</span>
-                </div>
-              ))}
-            </div>
+            <button
+              onClick={() => router.push(`/${locale}/history`)}
+              className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-2xl py-4 px-5 flex items-center justify-between mt-2"
+            >
+              <span className="text-white font-bold text-base">{t('ticket.myCodesHistory')}</span>
+              <div className="flex items-center gap-2">
+                <span className="bg-gold text-[#1a1a1a] font-black text-xs px-2 py-1 rounded-full">{participant.codes.length}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ transform: locale === 'ar' ? 'rotate(180deg)' : 'none' }}><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </button>
           )}
         </div>
       </div>

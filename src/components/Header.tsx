@@ -73,15 +73,16 @@ export default function Header({ onBack, toggleLocalePath, onLogout }: HeaderPro
   const Right = isAr ? BackBtn   : LangGroup
 
   return (
-    <div className="relative z-50 shrink-0 flex items-center justify-between px-4 pt-3 pb-2" dir="ltr">
+    <div className="relative z-50 shrink-0 flex items-center justify-between px-4" style={{ minHeight: '110px' }} dir="ltr">
       <div className="w-auto flex items-center">{Left}</div>
-      <div className="flex-1 flex justify-center">
+      {/* Logo absolutely centered — top padding pushes it down from the status bar */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingTop: '14px' }}>
         <Image
           src="/moussy_logo.png"
           alt="Moussy"
-          width={120}
-          height={60}
-          className="h-20 w-auto object-contain brightness-200"
+          width={192}
+          height={96}
+          className="h-32 w-auto object-contain brightness-200"
         />
       </div>
       <div className="w-auto flex items-center justify-end">{Right}</div>

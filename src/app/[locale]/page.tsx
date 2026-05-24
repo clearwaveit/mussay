@@ -121,13 +121,13 @@ function HeroContent() {
     <div className="bg-pattern min-h-dvh flex flex-col relative overflow-hidden" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
       <Header onBack={null} toggleLocalePath={locale === 'ar' ? '/en' : '/ar'} />
 
-      {/* Main banner image — fills available space */}
-      <div className="relative flex-1 overflow-hidden">
+      {/* Main banner image — contains full image in available space */}
+      <div className="relative flex-1">
         <Image
           src={locale === 'ar' ? '/main-banner-ar.jpg' : '/main-banner-en.jpg'}
           alt="Moussy Campaign"
           fill
-          className="object-cover object-top"
+          className="object-contain object-center"
           priority
         />
       </div>
