@@ -127,7 +127,7 @@ function HeroContent() {
           src={locale === 'ar' ? '/main-banner-ar.jpg' : '/main-banner-en.jpg'}
           alt="Moussy Campaign"
           fill
-          className="object-contain object-center"
+          className="object-cover object-center"
           priority
         />
       </div>
