@@ -229,12 +229,12 @@ export default function RegisterPage() {
                   ['prizesTitle', 'prizesText'], ['drawTitle', 'drawText'],
                   ['redeemTitle', 'redeemText'], ['privacyTitle', 'privacyText'],
                   ['disclaimerTitle', 'disclaimerText'], ['generalTitle', 'generalText'],
-                ] as const).map(([tk, vk]) => (
+                ] as [string, string][]).map(([tk, vk], i) => (
                   <div key={tk} className="mb-3">
                     <h3 className="font-bold text-sm mb-1">
-                      {(['introTitle','eligibilityTitle','periodTitle','howTitle','prizesTitle','drawTitle','redeemTitle','privacyTitle','disclaimerTitle','generalTitle'] as const).indexOf(tk) + 1}. {t(tk)}
+                      {i + 1}. {t(`terms.${tk}`)}
                     </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{t(vk)}</p>
+                    <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{t(`terms.${vk}`)}</p>
                   </div>
                 ))}
               </div>
