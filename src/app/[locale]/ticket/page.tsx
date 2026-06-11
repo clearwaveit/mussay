@@ -6,11 +6,10 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 
-const NOON_URL = 'https://minutes.noon.com/saudi-en/search/?f%5Btag%5D=ksa_moussy_admon_may_25'
+const NOON_URL = 'https://talabat.go.link/7V8VZ'
 
-type CodeStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
-interface EntryCode { id: string; code: string; status: CodeStatus; usedAt: string | null }
-interface Participant { id: string; ticketNumber: number; name: string; phone: string; entries: { type: string }[]; codes: EntryCode[] }
+interface UserCode { id: string; code: string; matched: boolean; rejected: boolean; submittedAt: string }
+interface Participant { id: string; ticketNumber: number; name: string; phone: string; entries: { type: string }[]; userCodes: UserCode[] }
 type CodeView = 'main' | 'entry' | 'success'
 
 export default function TicketPage() {
@@ -61,10 +60,8 @@ export default function TicketPage() {
     ? String(participant.ticketNumber).padStart(5, '0')
     : '00000'
 
-  const statusColor = (s: CodeStatus) =>
-    s === 'APPROVED' ? 'text-[#00c758]' : s === 'REJECTED' ? 'text-[#e21f26]' : 'text-yellow-400'
-  const statusLabel = (s: CodeStatus) =>
-    s === 'APPROVED' ? t('ticket.approved') : s === 'REJECTED' ? t('ticket.rejected') : t('ticket.underReview')
+  const matchColor = (matched: boolean) => matched ? 'text-[#00c758]' : 'text-yellow-400'
+  const matchLabel = (matched: boolean) => matched ? t('ticket.approved') : t('ticket.underReview')
 
   const Banner = () => (
     <div className="shrink-0 mx-4 mt-2 mb-1 h-[220px]">
@@ -164,7 +161,7 @@ export default function TicketPage() {
             </div>
             {/* Main body */}
             <div className="flex-1 flex flex-col justify-center px-4 py-3">
-              <p className="text-[#1a1a1a] font-bold text-xs mb-1">{t('ticket.drawLabel')} – Dhul Qa&apos;dah 1447 H</p>
+              <p className="text-[#1a1a1a] font-bold text-xs mb-1">{t('ticket.drawLabel')} – {t('ticket.drawPeriod')}</p>
               <p className="text-[#e21f26] text-xs font-semibold">
                 {t('ticket.congrats')} ✓
               </p>
@@ -219,14 +216,14 @@ export default function TicketPage() {
           </button>
 
           {/* My Codes History button */}
-          {participant.codes.length > 0 && (
+          {participant.userCodes.length > 0 && (
             <button
               onClick={() => router.push(`/${locale}/history`)}
               className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-2xl py-4 px-5 flex items-center justify-between mt-2"
             >
               <span className="text-white font-bold text-base">{t('ticket.myCodesHistory')}</span>
               <div className="flex items-center gap-2">
-                <span className="bg-gold text-[#1a1a1a] font-black text-xs px-2 py-1 rounded-full">{participant.codes.length}</span>
+                <span className="bg-gold text-[#1a1a1a] font-black text-xs px-2 py-1 rounded-full">{participant.userCodes.length}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ transform: locale === 'ar' ? 'rotate(180deg)' : 'none' }}><polyline points="9 18 15 12 9 6"/></svg>
               </div>
             </button>

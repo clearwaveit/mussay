@@ -6,15 +6,14 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 
-type CodeStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
-interface EntryCode { id: string; code: string; status: CodeStatus; usedAt: string | null }
+interface UserCode { id: string; code: string; matched: boolean; rejected: boolean; submittedAt: string }
 
 export default function HistoryPage() {
   const t = useTranslations()
   const locale = useLocale()
   const router = useRouter()
 
-  const [codes, setCodes] = useState<EntryCode[]>([])
+  const [codes, setCodes] = useState<UserCode[]>([])
   const [loading, setLoading] = useState(true)
 
   const pid = typeof document !== 'undefined'
@@ -26,17 +25,17 @@ export default function HistoryPage() {
       const res = await fetch(`/api/entries?pid=${pid}`)
       if (!res.ok) { router.replace(`/${locale}/register`); return }
       const data = await res.json()
-      setCodes(data.codes ?? [])
+      setCodes(data.userCodes ?? [])
     } catch {}
     finally { setLoading(false) }
   }, [pid, locale, router])
 
   useEffect(() => { fetchCodes() }, [fetchCodes])
 
-  const statusColor = (s: CodeStatus) =>
-    s === 'APPROVED' ? 'text-[#00c758]' : s === 'REJECTED' ? 'text-[#e21f26]' : 'text-yellow-400'
-  const statusLabel = (s: CodeStatus) =>
-    s === 'APPROVED' ? t('ticket.approved') : s === 'REJECTED' ? t('ticket.rejected') : t('ticket.underReview')
+  const statusColor = (matched: boolean, rejected: boolean) =>
+    rejected ? 'text-[#e21f26]' : matched ? 'text-[#00c758]' : 'text-yellow-400'
+  const statusLabel = (matched: boolean, rejected: boolean) =>
+    rejected ? t('ticket.rejected') : matched ? t('ticket.approved') : t('ticket.underReview')
 
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-GB', {
@@ -76,12 +75,10 @@ export default function HistoryPage() {
                 <span className="text-white/30 text-xs font-mono shrink-0 w-5 text-center">{i + 1}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-black tracking-widest text-sm font-mono" dir="ltr">{entry.code}</p>
-                  {entry.usedAt && (
-                    <p className="text-white/40 text-[10px] mt-0.5">{fmtDate(entry.usedAt)}</p>
-                  )}
+                  <p className="text-white/40 text-[10px] mt-0.5">{fmtDate(entry.submittedAt)}</p>
                 </div>
-                <span className={`text-xs font-bold shrink-0 ${statusColor(entry.status)}`}>
-                  {statusLabel(entry.status)}
+                <span className={`text-xs font-bold shrink-0 ${statusColor(entry.matched, entry.rejected)}`}>
+                  {statusLabel(entry.matched, entry.rejected)}
                 </span>
               </div>
             ))}

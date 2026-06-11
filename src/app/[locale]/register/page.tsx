@@ -6,9 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 
-type Step = 'phone' | 'otp' | 'details' | 'terms'
-
-const OTP_CODE = '1234AC'
+type Step = 'phone' | 'details' | 'terms'
 
 export default function RegisterPage() {
   const t = useTranslations()
@@ -17,7 +15,6 @@ export default function RegisterPage() {
 
   const [step, setStep] = useState<Step>('phone')
   const [phone, setPhone] = useState('')
-  const [otp, setOtp] = useState('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [ageConfirmed, setAgeConfirmed] = useState(false)
@@ -38,22 +35,15 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (data.exists) {
-        // Already registered — set cookie and go straight to dashboard
         document.cookie = `pid=${data.participantId}; path=/; max-age=${60 * 60 * 24 * 30}`
         router.push(`/${locale}/ticket`)
         return
       }
     } catch {
-      // Network error — still allow continuing to register
+      // Network error — still allow continuing
     } finally {
       setLoading(false)
     }
-    setStep('otp')
-  }
-
-  const handleOtpNext = () => {
-    setError('')
-    if (otp.trim().toUpperCase() !== OTP_CODE) { setError(t('register.otpInvalid')); return }
     setStep('details')
   }
 
@@ -87,12 +77,10 @@ export default function RegisterPage() {
 
   const handleBack = () => {
     if (step === 'terms') setStep('details')
-    else if (step === 'details') setStep('otp')
-    else if (step === 'otp') { setOtp(''); setStep('phone') }
+    else if (step === 'details') setStep('phone')
     else router.push(`/${locale}/buy`)
   }
 
-  /* Shared banner used on all steps */
   const Banner = () => (
     <div className="shrink-0 mx-4 mt-2 mb-1 h-[220px]">
       <div className="w-full h-full rounded-2xl overflow-hidden relative shadow-lg">
@@ -101,7 +89,6 @@ export default function RegisterPage() {
     </div>
   )
 
-  /* Shared checkbox */
   const Checkbox = ({ checked, onToggle, children }: { checked: boolean; onToggle: () => void; children: React.ReactNode }) => (
     <label className="flex items-start gap-3 cursor-pointer" onClick={onToggle}>
       <div className="relative flex items-center justify-center mt-0.5 shrink-0">
@@ -117,7 +104,6 @@ export default function RegisterPage() {
 
       <Header onBack={handleBack} toggleLocalePath={locale === 'ar' ? '/en/register' : '/ar/register'} />
 
-      {/* Content */}
       <div className="flex-1 flex flex-col w-full overflow-y-auto overflow-x-hidden scrollbar-hide">
 
         {/* ── Phone Step ── */}
@@ -148,35 +134,6 @@ export default function RegisterPage() {
               <button onClick={handlePhoneNext} disabled={loading}
                 className="w-full bg-gold-gradient text-[#1a1a1a] font-black text-xl py-4 rounded-2xl shadow-premium active:scale-[0.98] transition-all disabled:opacity-60">
                 {loading ? '...' : t('common.next')}
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* ── OTP Step ── */}
-        {step === 'otp' && (
-          <>
-            <Banner />
-            <div className="flex-1 flex flex-col justify-center px-6 py-8">
-              <h2 className="text-3xl font-bold text-center mb-3 text-gold uppercase tracking-wider leading-tight">
-                {t('register.otpTitle')}
-              </h2>
-              <p className="text-white/60 text-sm text-center mb-8 leading-relaxed">
-                {t('register.otpDesc')}
-              </p>
-              <input
-                type="text"
-                value={otp}
-                onChange={e => setOtp(e.target.value.toUpperCase().slice(0, 8))}
-                placeholder={t('register.otpPlaceholder')}
-                onKeyDown={e => e.key === 'Enter' && handleOtpNext()}
-                dir="ltr"
-                className="w-full bg-white text-[#1a1a1a] font-black text-3xl text-center tracking-[0.3em] px-6 py-5 rounded-2xl outline-none focus:ring-4 focus:ring-[#cc9a5280] transition-all mb-6 uppercase"
-              />
-              {error && <p className="text-yellow-400 text-sm text-center mb-4">{error}</p>}
-              <button onClick={handleOtpNext}
-                className="w-full bg-gold-gradient text-[#1a1a1a] font-black text-xl py-4 rounded-2xl shadow-premium active:scale-[0.98] transition-all">
-                {t('common.next')}
               </button>
             </div>
           </>
@@ -220,7 +177,6 @@ export default function RegisterPage() {
               <h2 className="text-2xl font-bold text-center mb-4 text-gold uppercase tracking-wider">
                 {t('terms.title')}
               </h2>
-              {/* T&C white card */}
               <div className="bg-white rounded-2xl p-5 mb-6 max-h-[280px] overflow-y-auto scrollbar text-[#1a1a1a]">
                 <p className="font-bold text-sm mb-3">{t('terms.intro')}</p>
                 {([
@@ -231,14 +187,11 @@ export default function RegisterPage() {
                   ['disclaimerTitle', 'disclaimerText'], ['generalTitle', 'generalText'],
                 ] as [string, string][]).map(([tk, vk], i) => (
                   <div key={tk} className="mb-3">
-                    <h3 className="font-bold text-sm mb-1">
-                      {i + 1}. {t(`terms.${tk}`)}
-                    </h3>
+                    <h3 className="font-bold text-sm mb-1">{i + 1}. {t(`terms.${tk}`)}</h3>
                     <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line">{t(`terms.${vk}`)}</p>
                   </div>
                 ))}
               </div>
-              {/* Checkboxes */}
               <div className="space-y-4 mb-6">
                 <Checkbox checked={termsAgreed} onToggle={() => setTermsAgreed(v => !v)}>
                   {t('register.termsAgree')} {t('register.termsLink')}

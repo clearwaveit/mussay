@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 
-const NOON_URL = 'https://minutes.noon.com/saudi-en/search/?f%5Btag%5D=ksa_moussy_admon_may_25'
+const NOON_URL = 'https://talabat.go.link/7V8VZ'
 
 export default function BuyPage() {
   const t = useTranslations()

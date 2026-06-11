@@ -12,9 +12,9 @@ export async function GET(req: NextRequest) {
     where: { id: pid },
     include: {
       entries: { select: { type: true } },
-      codes: {
-        select: { id: true, code: true, status: true, usedAt: true },
-        orderBy: { usedAt: 'desc' },
+      userCodes: {
+        select: { id: true, code: true, matched: true, rejected: true, submittedAt: true },
+        orderBy: { submittedAt: 'desc' },
       },
     },
   })

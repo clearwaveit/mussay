@@ -12,13 +12,14 @@ export async function DELETE(
 
   const { id } = await params
 
-  // Unlink codes first, then delete entries and participant
+  // Unlink codes first, then delete entries, userCodes and participant
   await prisma.$transaction([
     prisma.code.updateMany({
       where: { participantId: id },
       data: { participantId: null, isUsed: false, status: 'PENDING', usedAt: null },
     }),
     prisma.entry.deleteMany({ where: { participantId: id } }),
+    prisma.userCode.deleteMany({ where: { participantId: id } }),
     prisma.participant.delete({ where: { id } }),
   ])
 

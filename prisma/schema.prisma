@@ -16,6 +16,7 @@ model Participant {
   createdAt    DateTime      @default(now())
   entries      Entry[]
   codes        Code[]
+  userCodes    UserCode[]
   abuse        AbuseRecord?
 
   @@index([phone])
@@ -45,14 +46,31 @@ model Entry {
   participant   Participant @relation(fields: [participantId], references: [id])
   participantId String
   type          EntryType
+  userCode      UserCode?   @relation(fields: [userCodeId], references: [id], onDelete: SetNull)
+  userCodeId    String?
   createdAt     DateTime    @default(now())
 
   @@index([participantId])
+  @@index([userCodeId])
 }
 
 enum EntryType {
   QR
   CODE
+}
+
+model UserCode {
+  id            String      @id @default(cuid())
+  code          String
+  matched       Boolean     @default(false)
+  rejected      Boolean     @default(false)
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  submittedAt   DateTime    @default(now())
+  entries       Entry[]
+
+  @@unique([code, participantId])
+  @@index([participantId])
 }
 
 model Campaign {

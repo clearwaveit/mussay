@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
 import Image from 'next/image'
 
 /* ─── Types ─────────────────────────────────────────────── */
@@ -42,6 +42,10 @@ interface AnalyticsDay {
 interface AnalyticsTotals {
   participants: number; codesImported: number; codesUsed: number
   entries: number; buyClicks: number; redemptionRate: number
+}
+
+interface PendingUserCode {
+  id: string; code: string; submittedAt: string
 }
 
 /* ─── Helpers ────────────────────────────────────────────── */
@@ -135,6 +139,10 @@ export default function AdminPage() {
   const [participantPage, setParticipantPage] = useState(1)
   const [participantTotal, setParticipantTotal] = useState(0)
 
+  /* pending user codes (reject feature) */
+  const [expandedParticipant, setExpandedParticipant] = useState<string | null>(null)
+  const [pendingCodes, setPendingCodes] = useState<Record<string, PendingUserCode[]>>({})
+
   /* codes */
   const [codes, setCodes] = useState<CodeRow[]>([])
   const [codeFilter, setCodeFilter] = useState<CodeFilter>('all')
@@ -158,6 +166,11 @@ export default function AdminPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  /* danger zone — temporary go-live wipe */
+  const [wipeConfirm, setWipeConfirm] = useState('')
+  const [wiping, setWiping] = useState(false)
+  const [wipeMsg, setWipeMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   /* ── Load helpers ── */
   const loadStats = useCallback(async () => {
@@ -267,6 +280,30 @@ export default function AdminPage() {
     loadStats()
   }
 
+  const handleExpandParticipant = async (id: string) => {
+    if (expandedParticipant === id) { setExpandedParticipant(null); return }
+    setExpandedParticipant(id)
+    if (pendingCodes[id]) return // already loaded
+    const res = await fetch(`/api/admin/participants/${id}/pending-codes`, { credentials: 'include' })
+    if (res.ok) {
+      const data = await res.json()
+      setPendingCodes(prev => ({ ...prev, [id]: data.codes }))
+    }
+  }
+
+  const handleRejectCode = async (userCodeId: string, participantId: string) => {
+    if (!confirm('Reject this code and remove its 10 entries?')) return
+    const res = await fetch(`/api/admin/usercodes/${userCodeId}`, { method: 'DELETE', credentials: 'include' })
+    if (res.ok) {
+      setPendingCodes(prev => ({
+        ...prev,
+        [participantId]: (prev[participantId] ?? []).filter(c => c.id !== userCodeId),
+      }))
+      loadParticipants()
+      loadStats()
+    }
+  }
+
   const handleResetAbuse = async (pid: string) => {
     if (!confirm('Reset abuse record for this participant?')) return
     setAbuseLoading(true)
@@ -283,6 +320,26 @@ export default function AdminPage() {
       await fetch('/api/admin/abuse?all=true', { method: 'DELETE', credentials: 'include' })
       loadAbuse()
     } finally { setAbuseLoading(false) }
+  }
+
+  const handleWipeAll = async () => {
+    if (wipeConfirm !== 'DELETE ALL') return
+    if (!confirm('This permanently deletes ALL participants, entries, codes and analytics. This cannot be undone. Continue?')) return
+    setWiping(true); setWipeMsg(null)
+    try {
+      const res = await fetch('/api/admin/wipe', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: 'DELETE ALL' }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setWipeMsg({ ok: false, text: data.error ?? 'Wipe failed' }); return }
+      const d = data.deleted
+      setWipeMsg({ ok: true, text: `Wiped: ${d.participants} participants, ${d.entries} entries, ${d.codes} codes, ${d.userCodes} user-codes, ${d.buyClicks} clicks. Ticket numbers reset.` })
+      setWipeConfirm('')
+      loadStats()
+    } catch { setWipeMsg({ ok: false, text: 'Connection error' }) }
+    finally { setWiping(false) }
   }
 
   const handleImport = async () => {
@@ -504,7 +561,8 @@ export default function AdminPage() {
                       {participants.length === 0 ? (
                         <tr><td colSpan={9} className="text-gray-600 text-center py-10 text-sm">No participants found</td></tr>
                       ) : participants.map(p => (
-                        <tr key={p.id} className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${p.isBlocked ? 'bg-red-500/[0.04]' : ''}`}>
+                        <Fragment key={p.id}>
+                        <tr className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors ${p.isBlocked ? 'bg-red-500/[0.04]' : ''}`}>
                           <td className="px-4 py-3">
                             <span className="font-mono text-[#cc9a52] font-bold text-xs">
                               #{String(p.ticketNumber).padStart(5, '0')}
@@ -530,15 +588,54 @@ export default function AdminPage() {
                           <td className="px-3 py-3 text-center text-gray-400 text-sm hidden lg:table-cell">{p.codesCount}</td>
                           <td className="px-3 py-3 text-gray-500 text-xs hidden xl:table-cell">{fmtDate(p.createdAt)}</td>
                           <td className="px-3 py-3">
-                            <button
-                              onClick={() => handleDeleteParticipant(p.id)}
-                              className="text-gray-600 hover:text-red-400 transition-colors p-1"
-                              title="Delete participant"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleExpandParticipant(p.id)}
+                                className="text-gray-600 hover:text-yellow-400 transition-colors p-1"
+                                title="View pending codes"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expandedParticipant === p.id ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><polyline points="6 9 12 15 18 9"/></svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteParticipant(p.id)}
+                                className="text-gray-600 hover:text-red-400 transition-colors p-1"
+                                title="Delete participant"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                              </button>
+                            </div>
                           </td>
                         </tr>
+                        {expandedParticipant === p.id && (
+                          <tr className="bg-black/20">
+                            <td colSpan={9} className="px-6 py-3">
+                              {!pendingCodes[p.id] ? (
+                                <p className="text-gray-500 text-xs">Loading...</p>
+                              ) : pendingCodes[p.id].length === 0 ? (
+                                <p className="text-gray-500 text-xs">No pending unmatched codes.</p>
+                              ) : (
+                                <div className="space-y-1">
+                                  <p className="text-yellow-400 text-xs font-bold mb-2">Pending unmatched codes — click ✕ to reject &amp; remove entries</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {pendingCodes[p.id].map(uc => (
+                                      <div key={uc.id} className="flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-400/30 rounded-lg px-3 py-1.5">
+                                        <span className="text-white font-mono text-xs font-bold tracking-widest">{uc.code}</span>
+                                        <button
+                                          onClick={() => handleRejectCode(uc.id, p.id)}
+                                          className="text-gray-500 hover:text-red-400 transition-colors ml-1"
+                                          title="Reject this code"
+                                        >
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                        </Fragment>
                       ))}
                     </tbody>
                   </table>
@@ -884,6 +981,35 @@ export default function AdminPage() {
                     className="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-40"
                   >
                     Update Password
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Danger Zone — TEMPORARY go-live wipe (remove after cleanup) ── */}
+              <div className="bg-red-950/20 border border-red-500/30 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <h3 className="text-red-400 font-semibold text-sm">Danger Zone — Wipe All Data</h3>
+                </div>
+                <p className="text-gray-400 text-xs mb-4 leading-relaxed">
+                  Permanently deletes <strong className="text-red-300">all participants, entries, submitted codes, imported codes, and analytics</strong>, and resets ticket numbering to #00001.
+                  Campaign settings are kept. <strong className="text-red-300">This cannot be undone.</strong> Type <code className="text-red-300">DELETE ALL</code> to enable the button.
+                </p>
+                <div className="space-y-3">
+                  <input
+                    type="text" value={wipeConfirm} onChange={e => setWipeConfirm(e.target.value)}
+                    placeholder="Type DELETE ALL to confirm"
+                    className="w-full bg-[#0d0d0d] border border-red-500/20 text-white text-sm px-4 py-2.5 rounded-xl outline-none focus:border-red-500/60 transition-colors placeholder:text-gray-600 font-mono"
+                  />
+                  {wipeMsg && (
+                    <p className={`text-xs ${wipeMsg.ok ? 'text-green-400' : 'text-red-400'}`}>{wipeMsg.text}</p>
+                  )}
+                  <button
+                    onClick={handleWipeAll}
+                    disabled={wipeConfirm !== 'DELETE ALL' || wiping}
+                    className="w-full bg-red-600/90 hover:bg-red-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {wiping ? 'Wiping…' : 'Permanently Delete All Data'}
                   </button>
                 </div>
               </div>
