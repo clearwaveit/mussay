@@ -125,7 +125,7 @@ function HeroContent() {
       <div className="flex-1 min-h-0 relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={locale === 'ar' ? '/main-banner-ar.jpg' : '/main-banner-en.jpg'}
+          src={locale === 'ar' ? '/main-banner-ar.webp' : '/main-banner-en.webp'}
           alt="Moussy Campaign"
           className="absolute inset-0 w-full h-full object-contain"
           fetchPriority="high"
