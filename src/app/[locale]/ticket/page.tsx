@@ -98,8 +98,8 @@ export default function TicketPage() {
                 type="text"
                 value={codeInput}
                 onChange={e => setCodeInput(e.target.value.toUpperCase())}
-                placeholder="XXXXXXXXX"
-                maxLength={12}
+                placeholder="XXXXXX"
+                maxLength={6}
                 onKeyDown={e => e.key === 'Enter' && handleCodeSubmit()}
                 dir="ltr" className="w-full font-black text-center text-4xl tracking-widest text-[#1a1a1a] placeholder:text-[#1a1a1a]/20 bg-white border-4 border-gold/50 rounded-2xl py-7 outline-none shadow-inner uppercase mb-4"
               />
